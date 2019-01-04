@@ -1,0 +1,287 @@
+---
+title: "School test score analysis"
+author: "MaryJo Webster"
+date:  "Last updated: `r Sys.Date()`"
+output:
+  html_document: 
+    toc: true
+    to_depth: 1
+    toc_float: true
+    theme: flatly
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,warning=FALSE, cache=FALSE, fig.height = 6, fig.width = 8)
+```
+
+
+```{r, code=readLines("process_test_score_data.R"), echo=FALSE, warning=FALSE, message=FALSE}
+
+```
+
+
+
+```{r}
+
+#overall proficiency rates in reading statewide (for graphic)
+state_read <- statewide %>%  filter(dataYear>='12-13', subject=='R',ReportDescription=='All Students') %>% group_by(dataYear, subject) %>% 
+  summarise(tottested=sum(countTested), totlevel1=sum(countLevel1), totlevel2=sum(countLevel2), totlevel3=sum(countLevel3), totlevel4=sum(countLevel4)) %>% mutate(countproficient=totlevel3+totlevel4, pctproficient=countproficient/tottested)
+  
+#overall proficiency rates in math statewide (for graphic)
+state_math <- statewide %>%  filter(dataYear>='12-13',subject=='M',ReportDescription=='All Students') %>% group_by(dataYear, subject) %>% 
+  summarise(tottested=sum(countTested), totlevel1=sum(countLevel1), totlevel2=sum(countLevel2),  totlevel3=sum(countLevel3), totlevel4=sum(countLevel4)) %>% mutate(countproficient=totlevel3+totlevel4, pctproficient=countproficient/tottested)
+
+#write.csv(state_read, "state_reading_proficiency.csv", row.names = false)
+#write.csv(state_math, "state_math_proficiency.csv", row.names=false)
+
+
+```
+
+
+```{r}
+state_read %>% mutate(pctprof=pctproficient*100, pctlev1=(totlevel1/tottested)*100, pctlev2=(totlevel2/tottested)*100, pctlev3=(totlevel3/tottested)*100, pctlev4=(totlevel4/tottested)*100) %>% select(dataYear, subject, pctprof, pctlev1, pctlev2, pctlev3, pctlev4)
+```
+
+
+```{r}
+state_math %>% mutate(pctprof=pctproficient*100, pctlev1=(totlevel1/tottested)*100, pctlev2=(totlevel2/tottested)*100,pctlev3=(totlevel3/tottested)*100, pctlev4=(totlevel4/tottested)*100) %>% select(dataYear, subject, pctprof, pctlev1, pctlev2,  pctlev3, pctlev4)
+```
+
+
+```{r}
+#3rd grade proficiency statewide, over time-- MATH
+
+state_g3_math <- statewide %>% filter(grade=='03', ReportDescription=='All Students', subject=='M') %>%
+  select(dataYear, grade, countTested, countLevel3, countLevel4) %>%
+  mutate(proficient=countLevel3+countLevel4, pctproficient=proficient/countTested) %>%
+  filter(dataYear=='12-13' | dataYear=='13-14' | dataYear=='14-15' | dataYear=='15-16' | dataYear=='16-17' | dataYear=='17-18')
+
+#state_g3_math$dataYear <- factor(state_g3_math$dataYear, levels=c("16-17", "15-16", "14-15", "13-14", "12-13"))
+
+g3_math_chart <- 	ggplot(state_g3_math, aes(x = dataYear, y = pctproficient)) +
+	geom_col(color="#556E7F", fill="#556E7F") +
+  geom_text(stat="identity", label=paste0(round((state_g3_math$pctproficient)*100,0),"%"), vjust= -1, size=4, position= position_dodge(width=1))+
+	scale_y_continuous(labels = percent, limits=c(0,1))+
+  theme_hc()+
+  labs(title = "Grade 3 math- Pct proficient",
+       x=NULL,
+       y=NULL)
+
+plot(g3_math_chart)
+```
+
+```{r}
+#3rd grade proficiency statewide, over time-- READING
+
+state_g3_read <- statewide %>% filter(grade=='03', ReportDescription=='All Students', subject=='R') %>%
+  select(dataYear, grade, countTested, countLevel3, countLevel4) %>%
+  mutate(proficient=countLevel3+countLevel4, pctproficient=proficient/countTested) %>%
+  filter(dataYear=='12-13' | dataYear=='13-14' | dataYear=='14-15' | dataYear=='15-16' | dataYear=='16-17')
+
+
+
+#state_g3_read$dataYear <- factor(state_g3_read$dataYear, levels=c("16-17", "15-16", "14-15", "13-14", "12-13"))
+
+g3_read_chart <- 	ggplot(state_g3_read, aes(x = dataYear, y = pctproficient)) +
+	geom_col(color="#556E7F", fill="#556E7F") +
+  geom_text(stat="identity", label=paste0(round((state_g3_read$pctproficient)*100,0),"%"), vjust= -1, size=4, position= position_dodge(width=1))+
+	scale_y_continuous(labels = percent, limits=c(0,1))+
+  theme_hc()+
+  labs(title = "Grade 3 reading- Pct proficient",
+       x=NULL,
+       y=NULL)
+
+plot(g3_read_chart)
+```
+
+#Free lunch 3rd graders
+
+```{r}
+state_g3_read_freelunch <-   statewide %>% filter(grade=='03', reportCategory=="EconomicStatus", subject=='R') %>%
+  select(dataYear, ReportDescription, countTested, countLevel3, countLevel4) %>%
+  mutate(proficient=countLevel3+countLevel4, pctproficient=proficient/countTested) %>%
+  filter(dataYear=='12-13' | dataYear=='13-14' | dataYear=='14-15' | dataYear=='15-16' | dataYear=='16-17') %>% 
+  select(dataYear, ReportDescription, pctproficient)
+
+state_g3_read_freelunch <-  state_g3_read_freelunch %>% mutate(desc= case_when(ReportDescription=="Eligible for Free/Reduced Priced Meals"~'Eligible', TRUE~'Not eligible')) %>% select(dataYear, desc, pctproficient) %>% arrange(desc(dataYear), desc(desc))
+
+
+state_g3_read_freelunch_chart <- 	ggplot(state_g3_read_freelunch, aes(x = dataYear, y = pctproficient, fill = desc, color = desc)) + geom_bar(stat="identity", position=position_dodge())+
+ # coord_flip()+
+  geom_text(stat="identity", label=paste0(round((state_g3_read_freelunch$pctproficient)*100,0),"%"), vjust=-1, position= position_dodge(width=1))+
+	scale_y_continuous(labels = percent, limits=c(0,.75))+
+  theme_hc()+
+  labs(title = "Grade 3 reading proficiency",
+       subtitle="Eligible for free lunch versus not",
+       x=NULL,
+       y=NULL)
+
+
+plot(state_g3_read_freelunch_chart)
+```
+
+
+```{r}
+testscores %>% filter(dataYear=='17-18', PovertyCategory=='High') %>% group_by(categoryname) %>% summarise(count=n()) %>% mutate(pct=count/sum(count))
+```
+
+
+```{r}
+testscores %>% filter(PovertyCategory=="High") %>% tabyl(dataYear, categoryname) %>% 
+  adorn_totals("col") %>%
+  adorn_percentages("row") %>%
+  adorn_pct_formatting(rounding = "half up", digits = 0) %>%
+   adorn_ns() %>% 
+   adorn_title("top")%>%
+  knitr::kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = F, position="left")
+```
+
+
+
+
+```{r}
+fallingshortmetro <- testscores %>% filter(dataYear=='17-18', PovertyCategory=='High', categoryname=='Falling short', Metro7county=='yes') %>% select(subject, districtname_new, SCHOOLNAME_NEW,  PctProf, predicted, residual, pctminority, PctPoverty, districtType.y) %>% arrange((SCHOOLNAME_NEW))
+
+betterthanexpectedmetro <- testscores %>% filter(dataYear=='17-18', PovertyCategory=='High', categoryname=='Better than expected', Metro7county=='yes') %>% select(subject, districtname_new, SCHOOLNAME_NEW,  PctProf, predicted, residual, pctminority, PctPoverty, districtType.y) %>% arrange((SCHOOLNAME_NEW))
+
+#write.csv(fallingshortmetro, "fallingshort_metro.csv", row.names=FALSE)
+#write.csv(betterthanexpectedmetro, "better_metro.csv", row.names=FALSE)
+```
+
+```{r}
+testscores %>% filter(dataYear=='17-18', districtname_new=='ANOKA-HENNEPIN', Metro7county=='yes') %>% select(subject, districtname_new, SCHOOLNAME_NEW,  categoryname,PctProf, predicted, residual, pctminority, districtType.y) %>% arrange((SCHOOLNAME_NEW))
+```
+
+
+```{r}
+testscores %>% filter(subject=='M', Metro7county=='yes', districtType.x!='07', PovertyCategory=='High', dataYear=='17-18') %>% tabyl(districtname_new, categoryname) %>%     adorn_totals("col") %>%
+  adorn_percentages("row") %>%
+  adorn_pct_formatting(rounding = "half up", digits = 0) %>%
+   adorn_ns() %>% 
+   adorn_title("top")%>%
+  knitr::kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = F, position="left")
+```
+
+
+```{r}
+districts_metro <- testscores %>% filter(Metro7county=='yes', districtType.x!='07',  dataYear=='17-18') %>% select(subject, districtname_new, SCHOOLNAME_NEW, categoryname, PovertyCategory, PctProf, predicted, residual)
+
+#write.csv(districts_metro, "districts_metro.csv", row.names=FALSE)
+```
+
+
+
+```{r}
+testscores %>% group_by(dataYear) %>% summarise(count=n())
+```
+
+
+```{r}
+testscores %>% filter(dataYear=='17-18', PovertyCategory=='High', categoryname=='Better than expected', subject=='M') %>% select(subject, districtname_new, SCHOOLNAME_NEW,  PctProf, predicted, residual, pctminority, districtType.y) %>% arrange(desc(residual))
+```
+
+
+
+
+```{r}
+#need this for Windows machine to correctly find the Arial font family
+windowsFonts(Arial=windowsFont("TT Arial")) 
+
+testscores_math <-  testscores %>% filter(subject=='M', dataYear=='17-18', categoryname!='Not enough students tested')
+
+#here's the scatterplot
+#notice that we didn't need to make a separate dataframe; we're pulling from the main one
+math_scatterplot <- ggplot(testscores_math, aes(x = PctPoverty, y = PctProf)) +
+  theme_minimal(base_size = 14, base_family = "Arial") + 
+  geom_point(size = 1, alpha = 0.5, aes(color=categoryname)) + 
+  scale_y_continuous(labels = percent, limits=c(0,1))+
+  scale_x_continuous(labels = percent, limits=c(0,1))+
+  geom_smooth(method='lm')+
+  #geom_smooth(method = lm, se = FALSE, color = "black", linetype = "dotdash", size = 0.3) +
+  labs(title = "Math test scores", 
+       caption = "Graphic by MaryJo Webster",
+       x="Percent poverty",
+       y="Percent proficient")
+
+
+
+#plot the scatterplot
+plot(math_scatterplot)
+```
+
+
+```{r}
+windowsFonts(Arial=windowsFont("TT Arial")) 
+
+testscores_read <-  testscores %>% filter(subject=='R', dataYear=='17-18', categoryname!="Not enough students tested")
+
+#here's the scatterplot
+#notice that we didn't need to make a separate dataframe; we're pulling from the main one
+read_scatterplot <- ggplot(testscores_read, aes(x = PctPoverty, y = PctProf)) +
+  theme_minimal(base_size = 14, base_family = "Arial") + 
+  geom_point(size = 1, alpha = 0.5, aes(color=categoryname)) + 
+  scale_y_continuous(labels = percent, limits=c(0,1))+
+  scale_x_continuous(labels = percent, limits=c(0,1))+
+  geom_smooth(method='lm')+
+  #geom_smooth(method = lm, se = FALSE, color = "black", linetype = "dotdash", size = 0.3) +
+  labs(title = "Reading test scores", 
+       caption = "Graphic by MaryJo Webster",
+       x="Percent poverty",
+       y="Percent proficient")
+
+
+
+#plot the scatterplot
+plot(read_scatterplot)
+```
+
+
+```{r}
+summary(read_model)
+```
+
+```{r}
+summary(math_model)
+```
+
+
+
+```{r}
+beatingodds_math_18 <- testscores %>% filter(dataYear=='17-18', categoryname=='Better than expected', subject=='M', PovertyCategory=='High', Metro7county=='yes')
+
+beatingodds_read_18 <- testscores %>% filter(dataYear=='17-18', categoryname=='Better than expected', subject=='R', PovertyCategory=='High', Metro7county=='yes')
+
+#write.csv(beatingodds_math_18, "beatingodds_math.csv")
+#write.csv(beatingodds_read_18, "beatingodds_read.csv")
+
+
+math_over_time <-  inner_join(beatingodds_math_18, testscores, by=c("subject"="subject", "schoolid"="schoolid"))
+
+math_over_time %>% tabyl(SCHOOLNAME_NEW.x, categoryname.y) %>% 
+  adorn_totals("col") %>%
+  #adorn_percentages("row") %>%
+  #adorn_pct_formatting(rounding = "half up", digits = 0) %>%
+   adorn_ns() %>% 
+   adorn_title("top")%>%
+  knitr::kable("html") %>% 
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"), full_width = F, position="left")
+
+```
+
+
+#How do beating odds schools compare to others?
+This shows proficiency for high-poverty beating odds schools<br>
+Compare these to the next chart for all high-poverty schools
+```{r}
+testscores %>% filter(dataYear=='17-18', PovertyCategory=='High', categoryname=='Better than expected') %>% group_by(subject, categoryname) %>% summarise(prof=sum(numproficient), tot=sum(cntTested)) %>% mutate(pct=prof/tot)
+
+
+```
+
+This is proficiency for all high poverty schools
+```{r}
+testscores %>% filter(dataYear=='17-18', PovertyCategory=='High') %>% group_by(subject) %>% summarise(prof=sum(numproficient), tot=sum(cntTested)) %>% mutate(pct=prof/tot)
+```
+
