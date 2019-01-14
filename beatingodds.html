@@ -101,6 +101,9 @@ img {
 button.code-folding-btn:focus {
   outline: none;
 }
+summary {
+  display: list-item;
+}
 </style>
 
 
@@ -108,14 +111,74 @@ button.code-folding-btn:focus {
 <div class="container-fluid main-container">
 
 <!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
 <script>
 $(document).ready(function () {
   window.buildTabsets("TOC");
 });
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
 </script>
 
 <!-- code folding -->
-
 
 
 
@@ -222,7 +285,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Beating the odds</h1>
 <h4 class="author"><em>MaryJo Webster</em></h4>
-<h4 class="date"><em>Last updated: 2018-09-07</em></h4>
+<h4 class="date"><em>Last updated: 2019-01-08</em></h4>
 
 </div>
 
@@ -234,816 +297,6 @@ div.tocify {
 <pre><code>## [1] TRUE</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre><code>## [1] TRUE</code></pre>
-<pre><code>##        schoolid PctPoverty    PctProf predicted residual
-## 1   0081-01-020     0.3333 0.33333333        NA       NA
-## 2   0356-01-010     0.4531 0.72727273        NA       NA
-## 3   0495-01-030     0.2233 0.52941176        NA       NA
-## 4   0514-01-020     0.3377 0.45454545        NA       NA
-## 5   0771-01-002     0.4521 0.58333333        NA       NA
-## 6   0801-01-010     0.7368 0.60000000        NA       NA
-## 7   0801-01-020     0.6750 0.35000000        NA       NA
-## 8   0852-01-010     0.6197 0.50000000        NA       NA
-## 9   0852-01-020     0.5156 0.23809524        NA       NA
-## 10  0861-01-011     0.2456 0.69230769        NA       NA
-## 11  2165-01-030     0.6286 0.30000000        NA       NA
-## 12  4003-07-010     0.5089 0.10000000        NA       NA
-## 13  4017-07-016     0.3019 0.70000000        NA       NA
-## 14  4031-07-010     0.7183 0.09090909        NA       NA
-## 15  4036-07-010     0.9200 0.20000000        NA       NA
-## 16  4050-07-010     0.4471 0.45000000        NA       NA
-## 17  4056-07-010     0.5714 0.33333333        NA       NA
-## 18  4057-07-010     0.9143 0.00000000        NA       NA
-## 19  4066-07-010     0.5672 0.35294118        NA       NA
-## 20  4087-07-010     0.7105 0.30000000        NA       NA
-## 21  4092-07-010     0.6351 0.26315789        NA       NA
-## 22  4100-07-010     0.4359 0.90476190        NA       NA
-## 23  4104-07-010     0.8057 0.12500000        NA       NA
-## 24  4107-07-010     0.8955 0.33333333        NA       NA
-## 25  4111-07-010     0.9160 0.05555556        NA       NA
-## 26  4113-07-010     0.4186 0.27272727        NA       NA
-## 27  4119-07-010     0.3538 0.31250000        NA       NA
-## 28  4187-07-010     0.1887 0.60000000        NA       NA
-## 29  4190-07-010     0.5692 0.43750000        NA       NA
-## 30  4201-07-010     0.6098 0.30769231        NA       NA
-## 31  0002-01-003     0.5000 0.76470588        NA       NA
-## 32  0016-01-788     0.0645 1.00000000        NA       NA
-## 33  0081-01-020     0.3333 0.41666667        NA       NA
-## 34  0356-01-010     0.4000 0.86363636        NA       NA
-## 35  0363-01-060     0.6849 0.37500000        NA       NA
-## 36  0507-01-020     0.1688 0.50000000        NA       NA
-## 37  0514-01-020     0.3788 0.77272727        NA       NA
-## 38  0561-01-020     0.4118 0.30000000        NA       NA
-## 39  0635-01-001     0.3636 0.40000000        NA       NA
-## 40  0801-01-020     0.5263 0.75000000        NA       NA
-## 41  0852-01-020     0.5000 0.54166667        NA       NA
-## 42  4017-07-016     0.3485 0.45454545        NA       NA
-## 43  4027-07-030     0.9200 0.58823529        NA       NA
-## 44  4036-07-010     0.9306 0.40000000        NA       NA
-## 45  4050-07-010     0.5054 0.40909091        NA       NA
-## 46  4057-07-010     0.9114 0.12500000        NA       NA
-## 47  4087-07-010     0.6790 0.36363636        NA       NA
-## 48  4092-07-010     0.5079 0.50000000        NA       NA
-## 49  4104-07-010     0.7857 0.30000000        NA       NA
-## 50  4107-07-010     0.8056 0.33333333        NA       NA
-## 51  4111-07-010     0.9231 0.28571429        NA       NA
-## 52  4119-07-010     0.5263 0.50000000        NA       NA
-## 53  4138-07-010     0.3182 0.50000000        NA       NA
-## 54  4146-07-010     0.8370 0.40909091        NA       NA
-## 55  4166-07-010     0.7957 0.36842105        NA       NA
-## 56  4190-07-010     0.6582 0.35294118        NA       NA
-## 57  4204-07-010     0.9605 0.15789474        NA       NA
-## 58  4212-07-010     0.9434 0.30769231        NA       NA
-## 59  0002-01-003     0.4894 0.40000000        NA       NA
-## 60  0016-01-787     0.0213 1.00000000        NA       NA
-## 61  0016-01-788     0.0857 0.93333333        NA       NA
-## 62  0081-01-020     0.3284 0.33333333        NA       NA
-## 63  0264-01-001     0.3279 0.54545455        NA       NA
-## 64  0264-01-002     0.3902 0.50000000        NA       NA
-## 65  0356-01-010     0.3784 0.90909091        NA       NA
-## 66  0356-01-020     0.3827 0.75000000        NA       NA
-## 67  0363-01-060     0.6667 0.58333333        NA       NA
-## 68  0415-01-010     0.6832 0.35294118        NA       NA
-## 69  0447-01-001     0.4795 0.73913043        NA       NA
-## 70  0458-01-020     0.3448 0.33333333        NA       NA
-## 71  0625-01-483     0.3486 0.66666667        NA       NA
-## 72  0635-01-001     0.6471 0.45454545        NA       NA
-## 73  0801-01-010     0.7385 0.70000000        NA       NA
-## 74  0801-01-020     0.6286 0.53333333        NA       NA
-## 75  0852-01-020     0.4697 0.54545455        NA       NA
-## 76  2165-01-030     0.5362 0.60000000        NA       NA
-## 77  4026-07-010     0.6000 0.50000000        NA       NA
-## 78  4036-07-010     0.9211 0.75000000        NA       NA
-## 79  4050-07-010     0.5200 0.53333333        NA       NA
-## 80  4057-07-010     0.9479 0.04166667        NA       NA
-## 81  4075-07-010     0.2391 0.83333333        NA       NA
-## 82  4087-07-010     0.6629 0.52941176        NA       NA
-## 83  4092-07-010     0.7255 0.50000000        NA       NA
-## 84  4100-07-010     0.4231 0.72727273        NA       NA
-## 85  4104-07-010     0.8799 0.27272727        NA       NA
-## 86  4107-07-010     0.7576 0.33333333        NA       NA
-## 87  4107-07-020     0.8966 0.15384615        NA       NA
-## 88  4111-07-010     0.8759 0.12500000        NA       NA
-## 89  4138-07-010     0.3061 0.40000000        NA       NA
-## 90  4187-07-010     0.1290 0.40000000        NA       NA
-## 91  4190-07-010     0.6429 0.33333333        NA       NA
-## 92  4198-07-010     0.6286 0.54545455        NA       NA
-## 93  4204-07-010     0.9500 0.10000000        NA       NA
-## 94  4215-07-010     0.4333 0.27272727        NA       NA
-## 95  4226-07-010     0.8305 0.12500000        NA       NA
-## 96  0002-01-003     0.5526 0.47058824        NA       NA
-## 97  0264-01-001     0.3239 0.45833333        NA       NA
-## 98  0264-01-002     0.4865 0.54545455        NA       NA
-## 99  0356-01-020     0.3333 0.53846154        NA       NA
-## 100 0403-01-010     0.3766 0.72727273        NA       NA
-## 101 0507-01-020     0.1538 0.39130435        NA       NA
-## 102 0801-01-010     0.6308 0.60000000        NA       NA
-## 103 0801-01-020     0.6944 0.65000000        NA       NA
-## 104 0852-01-010     0.6184 0.83333333        NA       NA
-## 105 2142-01-020     0.5921 0.62500000        NA       NA
-## 106 2165-01-030     0.5797 0.66666667        NA       NA
-## 107 2683-01-011     0.4386 0.65217391        NA       NA
-## 108 4017-07-016     0.2955 0.30000000        NA       NA
-## 109 4031-07-010     0.9000 0.00000000        NA       NA
-## 110 4036-07-010     0.9079 0.52631579        NA       NA
-## 111 4050-07-010     0.6269 0.54545455        NA       NA
-## 112 4057-07-010     0.8990 0.13043478        NA       NA
-## 113 4064-07-010     0.6538 0.36363636        NA       NA
-## 114 4087-07-010     0.6310 0.22222222        NA       NA
-## 115 4092-07-010     0.5417 0.53846154        NA       NA
-## 116 4104-07-010     0.7110 0.09523810        NA       NA
-## 117 4107-07-010     0.8281 0.35294118        NA       NA
-## 118 4111-07-010     0.7708 0.36363636        NA       NA
-## 119 4113-07-010     0.5060 0.10000000        NA       NA
-## 120 4119-07-010     0.5000 0.18181818        NA       NA
-## 121 4138-07-010     0.4054 0.06666667        NA       NA
-## 122 4190-07-010     0.6164 0.40909091        NA       NA
-## 123 4204-07-010     0.9130 0.19047619        NA       NA
-## 124 4207-07-010     0.7209 0.38461538        NA       NA
-## 125 4220-07-010     0.1233 0.66666667        NA       NA
-## 126 4226-07-010     0.9016 0.00000000        NA       NA
-## 127 4233-07-010     0.4324 0.52173913        NA       NA
-## 128 0001-03-215     0.5685 0.33333333        NA       NA
-## 129 0001-03-354     0.8177 0.30769231        NA       NA
-## 130 0002-01-003     0.4938 0.57894737        NA       NA
-## 131 0016-01-787     0.1750 1.00000000        NA       NA
-## 132 0016-01-788     0.1220 1.00000000        NA       NA
-## 133 0081-01-010     0.5147 0.54166667        NA       NA
-## 134 0192-01-155     0.2075 0.90000000        NA       NA
-## 135 0264-01-001     0.3750 0.70000000        NA       NA
-## 136 0264-01-002     0.3617 0.61538462        NA       NA
-## 137 0356-01-020     0.3000 0.66666667        NA       NA
-## 138 0363-01-060     0.5714 0.50000000        NA       NA
-## 139 0403-01-010     0.2800 0.63636364        NA       NA
-## 140 0458-01-020     0.3974 0.20000000        NA       NA
-## 141 0514-01-020     0.4789 0.68181818        NA       NA
-## 142 0635-01-001     0.3846 0.50000000        NA       NA
-## 143 0852-01-010     0.5147 0.62500000        NA       NA
-## 144 2142-01-020     0.5342 0.50000000        NA       NA
-## 145 2165-01-030     0.4935 0.66666667        NA       NA
-## 146 2683-01-011     0.3725 0.75000000        NA       NA
-## 147 4017-07-021     1.0000 0.17391304        NA       NA
-## 148 4026-07-010     0.6132 0.20000000        NA       NA
-## 149 4031-07-010     0.6813 0.18181818        NA       NA
-## 150 4036-07-010     0.8750 0.62500000        NA       NA
-## 151 4050-07-010     0.4189 0.52380952        NA       NA
-## 152 4057-07-010     0.7024 0.00000000        NA       NA
-## 153 4064-07-010     0.6545 0.40000000        NA       NA
-## 154 4066-07-010     0.5000 0.54545455        NA       NA
-## 155 4087-07-010     0.5676 0.40909091        NA       NA
-## 156 4092-07-010     0.4340 0.53846154        NA       NA
-## 157 4104-07-010     0.7306 0.06666667        NA       NA
-## 158 4107-07-010     0.8167 0.28571429        NA       NA
-## 159 4111-07-010     0.9697 0.08333333        NA       NA
-## 160 4113-07-010     0.4624 0.30000000        NA       NA
-## 161 4119-07-010     0.3981 0.47058824        NA       NA
-## 162 4138-07-010     0.4048 0.23076923        NA       NA
-## 163 4155-07-010     0.7708 0.22727273        NA       NA
-## 164 4187-07-010     0.0250 0.33333333        NA       NA
-## 165 4190-07-010     0.5571 0.31250000        NA       NA
-## 166 4207-07-010     0.7209 0.30000000        NA       NA
-## 167 4217-07-020     0.5000 0.42857143        NA       NA
-## 168 4226-07-010     0.9200 0.00000000        NA       NA
-## 169 4229-07-010     0.2475 0.15000000        NA       NA
-## 170 4232-07-010     0.9036 0.10000000        NA       NA
-## 171 0001-03-216     0.9565 0.00000000        NA       NA
-## 172 0002-01-003     0.5432 0.50000000        NA       NA
-## 173 0016-01-788     0.1224 1.00000000        NA       NA
-## 174 0192-01-155     0.2973 0.57142857        NA       NA
-## 175 0264-01-001     0.3438 0.30000000        NA       NA
-## 176 0264-01-002     0.4043 0.59090909        NA       NA
-## 177 0363-01-060     0.5192 0.20000000        NA       NA
-## 178 0363-01-070     0.3784 0.60869565        NA       NA
-## 179 0458-01-020     0.4286 0.54166667        NA       NA
-## 180 0514-01-020     0.3966 0.60000000        NA       NA
-## 181 0635-01-001     0.3684 0.28571429        NA       NA
-## 182 0852-01-010     0.6104 0.70000000        NA       NA
-## 183 0852-01-020     0.4545 0.69565217        NA       NA
-## 184 4026-07-010     0.5913 0.22727273        NA       NA
-## 185 4036-07-010     0.8987 0.56250000        NA       NA
-## 186 4050-07-010     0.0617 0.46666667        NA       NA
-## 187 4056-07-010     0.4861 0.30000000        NA       NA
-## 188 4057-07-010     0.7609 0.06250000        NA       NA
-## 189 4066-07-010     0.4225 0.30434783        NA       NA
-## 190 4081-07-010     0.5424 0.20000000        NA       NA
-## 191 4092-07-010     0.3889 0.64285714        NA       NA
-## 192 4104-07-010     0.8317 0.22727273        NA       NA
-## 193 4107-07-010     0.8136 0.46666667        NA       NA
-## 194 4111-07-010     0.8434 0.13333333        NA       NA
-## 195 4113-07-010     0.4815 0.50000000        NA       NA
-## 196 4118-07-020     0.2500 0.46666667        NA       NA
-## 197 4119-07-010     0.3265 0.41666667        NA       NA
-## 198 4166-07-010     0.8741 0.38095238        NA       NA
-## 199 4190-07-010     0.5735 0.40000000        NA       NA
-## 200 4199-07-025     0.3269 0.88235294        NA       NA
-## 201 0081-01-020     0.3333 0.50000000        NA       NA
-## 202 0264-01-001     0.4074 0.70000000        NA       NA
-## 203 0356-01-010     0.4531 0.90909091        NA       NA
-## 204 0495-01-030     0.2233 0.40000000        NA       NA
-## 205 0514-01-020     0.3377 0.68750000        NA       NA
-## 206 0771-01-002     0.4521 0.63636364        NA       NA
-## 207 0801-01-010     0.7368 0.64285714        NA       NA
-## 208 0801-01-020     0.6750 0.80000000        NA       NA
-## 209 0852-01-010     0.6197 0.60869565        NA       NA
-## 210 0852-01-020     0.5156 0.38095238        NA       NA
-## 211 0861-01-011     0.2456 0.84615385        NA       NA
-## 212 2165-01-030     0.6286 0.60000000        NA       NA
-## 213 4000-07-010     0.9279 0.05555556        NA       NA
-## 214 4017-07-016     0.3019 0.25000000        NA       NA
-## 215 4031-07-010     0.7183 0.09090909        NA       NA
-## 216 4036-07-010     0.9200 0.10000000        NA       NA
-## 217 4050-07-010     0.4471 0.15000000        NA       NA
-## 218 4056-07-010     0.5714 0.04761905        NA       NA
-## 219 4066-07-010     0.5672 0.10000000        NA       NA
-## 220 4087-07-010     0.7105 0.05555556        NA       NA
-## 221 4092-07-010     0.6351 0.07692308        NA       NA
-## 222 4107-07-010     0.8955 0.00000000        NA       NA
-## 223 4111-07-010     0.9160 0.09523810        NA       NA
-## 224 4113-07-010     0.4186 0.45454545        NA       NA
-## 225 4119-07-010     0.3538 0.09090909        NA       NA
-## 226 4146-07-010     0.7905 0.00000000        NA       NA
-## 227 4187-07-010     0.1887 0.60000000        NA       NA
-## 228 4201-07-010     0.6098 0.15384615        NA       NA
-## 229 4204-07-010     0.9831 0.00000000        NA       NA
-## 230 0016-01-788     0.0645 0.84615385        NA       NA
-## 231 0356-01-010     0.4000 0.81818182        NA       NA
-## 232 0363-01-060     0.6849 0.46153846        NA       NA
-## 233 0495-01-030     0.2660 0.47058824        NA       NA
-## 234 0507-01-020     0.1688 0.60869565        NA       NA
-## 235 0514-01-020     0.3788 0.69565217        NA       NA
-## 236 0561-01-020     0.4118 0.40909091        NA       NA
-## 237 0635-01-001     0.3636 0.50000000        NA       NA
-## 238 0771-01-002     0.3889 0.45454545        NA       NA
-## 239 0801-01-020     0.5263 0.60000000        NA       NA
-## 240 0852-01-020     0.5000 0.36363636        NA       NA
-## 241 4000-07-010     0.9725 0.11111111        NA       NA
-## 242 4017-07-016     0.3485 0.05263158        NA       NA
-## 243 4026-07-010     0.6838 0.61904762        NA       NA
-## 244 4031-07-010     0.8378 0.07142857        NA       NA
-## 245 4036-07-010     0.9306 0.53846154        NA       NA
-## 246 4050-07-010     0.5054 0.22727273        NA       NA
-## 247 4056-07-010     0.5556 0.08695652        NA       NA
-## 248 4057-07-010     0.9114 0.04347826        NA       NA
-## 249 4066-07-010     0.6615 0.00000000        NA       NA
-## 250 4081-07-010     0.6731 0.10000000        NA       NA
-## 251 4087-07-010     0.6790 0.05555556        NA       NA
-## 252 4092-07-010     0.5079 0.23529412        NA       NA
-## 253 4107-07-010     0.8056 0.05882353        NA       NA
-## 254 4111-07-010     0.9231 0.07692308        NA       NA
-## 255 4119-07-010     0.5263 0.00000000        NA       NA
-## 256 4138-07-010     0.3182 0.70000000        NA       NA
-## 257 4146-07-010     0.8370 0.12500000        NA       NA
-## 258 4166-07-010     0.7957 0.21739130        NA       NA
-## 259 4187-07-010     0.2167 0.70000000        NA       NA
-## 260 4212-07-010     0.9434 0.21428571        NA       NA
-## 261 0002-01-003     0.4894 0.50000000        NA       NA
-## 262 0016-01-787     0.0213 1.00000000        NA       NA
-## 263 0016-01-788     0.0857 0.93333333        NA       NA
-## 264 0081-01-020     0.3284 0.33333333        NA       NA
-## 265 0264-01-001     0.3279 0.54545455        NA       NA
-## 266 0264-01-002     0.3902 0.10000000        NA       NA
-## 267 0356-01-010     0.3784 0.68181818        NA       NA
-## 268 0356-01-020     0.3827 0.23809524        NA       NA
-## 269 0363-01-060     0.6667 0.41666667        NA       NA
-## 270 0415-01-010     0.6832 0.41176471        NA       NA
-## 271 0447-01-001     0.4795 0.56521739        NA       NA
-## 272 0507-01-020     0.1170 0.52380952        NA       NA
-## 273 0624-01-055     0.2601 1.00000000        NA       NA
-## 274 0635-01-001     0.6471 0.45454545        NA       NA
-## 275 0801-01-010     0.7385 0.80000000        NA       NA
-## 276 0801-01-020     0.6286 0.64285714        NA       NA
-## 277 2165-01-030     0.5362 0.80000000        NA       NA
-## 278 4000-07-010     0.5948 0.00000000        NA       NA
-## 279 4017-07-016     0.3125 0.17391304        NA       NA
-## 280 4026-07-010     0.6000 0.30000000        NA       NA
-## 281 4027-07-030     0.9449 0.52941176        NA       NA
-## 282 4031-07-010     0.7143 0.00000000        NA       NA
-## 283 4036-07-010     0.9211 0.69230769        NA       NA
-## 284 4050-07-010     0.5200 0.60000000        NA       NA
-## 285 4057-07-010     0.9479 0.00000000        NA       NA
-## 286 4066-07-010     0.5904 0.15384615        NA       NA
-## 287 4081-07-010     0.7091 0.00000000        NA       NA
-## 288 4087-07-010     0.6629 0.25000000        NA       NA
-## 289 4092-07-010     0.7255 0.27272727        NA       NA
-## 290 4100-07-010     0.4231 0.63636364        NA       NA
-## 291 4107-07-010     0.7576 0.07692308        NA       NA
-## 292 4107-07-020     0.8966 0.00000000        NA       NA
-## 293 4111-07-010     0.8759 0.00000000        NA       NA
-## 294 4119-07-010     0.5570 0.00000000        NA       NA
-## 295 4138-07-010     0.3061 0.50000000        NA       NA
-## 296 4166-07-010     0.8168 0.15789474        NA       NA
-## 297 4190-07-010     0.6429 0.18750000        NA       NA
-## 298 4198-07-010     0.6286 0.63636364        NA       NA
-## 299 4204-07-010     0.9500 0.06250000        NA       NA
-## 300 4207-07-010     0.5000 0.00000000        NA       NA
-## 301 4215-07-010     0.4333 0.16666667        NA       NA
-## 302 4226-07-010     0.8305 0.12500000        NA       NA
-## 303 0001-03-354     0.8508 0.58823529        NA       NA
-## 304 0001-03-364     0.3591 0.41666667        NA       NA
-## 305 0002-01-003     0.5526 0.50000000        NA       NA
-## 306 0264-01-001     0.3239 0.45833333        NA       NA
-## 307 0264-01-002     0.4865 0.45454545        NA       NA
-## 308 0356-01-020     0.3333 0.58333333        NA       NA
-## 309 0403-01-010     0.3766 0.81818182        NA       NA
-## 310 0458-01-020     0.3793 0.09090909        NA       NA
-## 311 0507-01-020     0.1538 0.50000000        NA       NA
-## 312 0801-01-010     0.6308 0.66666667        NA       NA
-## 313 0801-01-020     0.6944 0.20000000        NA       NA
-## 314 0852-01-020     0.5211 0.16666667        NA       NA
-## 315 2142-01-020     0.5921 0.66666667        NA       NA
-## 316 2165-01-030     0.5797 0.79166667        NA       NA
-## 317 2683-01-011     0.4386 0.56521739        NA       NA
-## 318 4017-07-016     0.2955 0.11111111        NA       NA
-## 319 4031-07-010     0.9000 0.07692308        NA       NA
-## 320 4036-07-010     0.9079 0.50000000        NA       NA
-## 321 4050-07-010     0.6269 0.50000000        NA       NA
-## 322 4056-07-010     0.5200 0.07142857        NA       NA
-## 323 4057-07-010     0.8990 0.00000000        NA       NA
-## 324 4064-07-010     0.6538 0.54545455        NA       NA
-## 325 4066-07-010     0.5875 0.46666667        NA       NA
-## 326 4087-07-010     0.6310 0.10526316        NA       NA
-## 327 4092-07-010     0.5417 0.25000000        NA       NA
-## 328 4107-07-010     0.8281 0.12500000        NA       NA
-## 329 4111-07-010     0.7708 0.05000000        NA       NA
-## 330 4113-07-010     0.5060 0.00000000        NA       NA
-## 331 4119-07-010     0.5000 0.06250000        NA       NA
-## 332 4138-07-010     0.4054 0.26666667        NA       NA
-## 333 4190-07-010     0.6164 0.14285714        NA       NA
-## 334 4204-07-010     0.9130 0.06250000        NA       NA
-## 335 4220-07-010     0.1233 0.77777778        NA       NA
-## 336 4226-07-010     0.9016 0.00000000        NA       NA
-## 337 4233-07-010     0.4324 0.37500000        NA       NA
-## 338 0001-03-215     0.5685 0.41666667        NA       NA
-## 339 0002-01-003     0.4938 0.31578947        NA       NA
-## 340 0016-01-787     0.1750 0.86363636        NA       NA
-## 341 0016-01-788     0.1220 0.79166667        NA       NA
-## 342 0192-01-155     0.2075 0.60000000        NA       NA
-## 343 0264-01-001     0.3750 0.50000000        NA       NA
-## 344 0264-01-002     0.3617 0.56521739        NA       NA
-## 345 0363-01-070     0.4211 0.28571429        NA       NA
-## 346 0403-01-010     0.2800 0.90909091        NA       NA
-## 347 0507-01-020     0.1770 0.58333333        NA       NA
-## 348 0514-01-020     0.4789 0.60000000        NA       NA
-## 349 0635-01-001     0.3846 0.30000000        NA       NA
-## 350 0852-01-010     0.5147 0.37500000        NA       NA
-## 351 2142-01-020     0.5342 0.35714286        NA       NA
-## 352 2165-01-030     0.4935 0.66666667        NA       NA
-## 353 2683-01-011     0.3725 1.00000000        NA       NA
-## 354 4000-07-010     0.9138 0.06666667        NA       NA
-## 355 4017-07-016     0.5135 0.12500000        NA       NA
-## 356 4031-07-010     0.6813 0.00000000        NA       NA
-## 357 4036-07-010     0.8750 0.42857143        NA       NA
-## 358 4050-07-010     0.4189 0.33333333        NA       NA
-## 359 4056-07-010     0.4643 0.05555556        NA       NA
-## 360 4057-07-010     0.7024 0.19047619        NA       NA
-## 361 4064-07-010     0.6545 0.60000000        NA       NA
-## 362 4066-07-010     0.5000 0.09090909        NA       NA
-## 363 4081-07-010     0.6563 0.21739130        NA       NA
-## 364 4087-07-010     0.5676 0.11764706        NA       NA
-## 365 4092-07-010     0.4340 0.10000000        NA       NA
-## 366 4107-07-010     0.8167 0.45454545        NA       NA
-## 367 4111-07-010     0.9697 0.00000000        NA       NA
-## 368 4113-07-010     0.4624 0.20000000        NA       NA
-## 369 4138-07-010     0.4048 0.30769231        NA       NA
-## 370 4187-07-010     0.0250 0.37500000        NA       NA
-## 371 4190-07-010     0.5571 0.08333333        NA       NA
-## 372 4204-07-010     0.9434 0.22222222        NA       NA
-## 373 4207-07-010     0.7209 0.09090909        NA       NA
-## 374 4226-07-010     0.9200 0.00000000        NA       NA
-## 375 4232-07-010     0.9036 0.00000000        NA       NA
-## 376 0001-03-216     0.9565 0.00000000        NA       NA
-## 377 0001-03-347     0.5442 0.23809524        NA       NA
-## 378 0002-01-003     0.5432 0.55000000        NA       NA
-## 379 0016-01-788     0.1224 0.90909091        NA       NA
-## 380 0192-01-155     0.2973 0.38095238        NA       NA
-## 381 0264-01-001     0.3438 0.60000000        NA       NA
-## 382 0264-01-002     0.4043 0.80000000        NA       NA
-## 383 0458-01-020     0.4286 0.12500000        NA       NA
-## 384 0514-01-020     0.3966 0.80000000        NA       NA
-## 385 0635-01-001     0.3684 0.14285714        NA       NA
-## 386 0852-01-010     0.6104 0.55000000        NA       NA
-## 387 0852-01-020     0.4545 0.58333333        NA       NA
-## 388 2527-01-020     0.2588 0.27272727        NA       NA
-## 389 4017-07-016     0.5517 0.06250000        NA       NA
-## 390 4031-07-010     0.4583 0.00000000        NA       NA
-## 391 4050-07-010     0.0617 0.73333333        NA       NA
-## 392 4056-07-010     0.4861 0.18181818        NA       NA
-## 393 4081-07-010     0.5424 0.00000000        NA       NA
-## 394 4087-07-010     0.6528 0.05555556        NA       NA
-## 395 4092-07-010     0.3889 0.07142857        NA       NA
-## 396 4104-07-010     0.8317 0.00000000        NA       NA
-## 397 4107-07-010     0.8136 0.10000000        NA       NA
-## 398 4111-07-010     0.8434 0.00000000        NA       NA
-## 399 4113-07-010     0.4815 0.20833333        NA       NA
-## 400 4118-07-020     0.2500 0.45454545        NA       NA
-## 401 4119-07-010     0.3265 0.07692308        NA       NA
-## 402 4190-07-010     0.5735 0.00000000        NA       NA
-## 403 4199-07-025     0.3269 0.57894737        NA       NA
-## 404 4217-07-020     0.2830 0.09090909        NA       NA
-##                            Notes
-## 1   Less than 25 students tested
-## 2   Less than 25 students tested
-## 3   Less than 25 students tested
-## 4   Less than 25 students tested
-## 5   Less than 25 students tested
-## 6   Less than 25 students tested
-## 7   Less than 25 students tested
-## 8   Less than 25 students tested
-## 9   Less than 25 students tested
-## 10  Less than 25 students tested
-## 11  Less than 25 students tested
-## 12  Less than 25 students tested
-## 13  Less than 25 students tested
-## 14  Less than 25 students tested
-## 15  Less than 25 students tested
-## 16  Less than 25 students tested
-## 17  Less than 25 students tested
-## 18  Less than 25 students tested
-## 19  Less than 25 students tested
-## 20  Less than 25 students tested
-## 21  Less than 25 students tested
-## 22  Less than 25 students tested
-## 23  Less than 25 students tested
-## 24  Less than 25 students tested
-## 25  Less than 25 students tested
-## 26  Less than 25 students tested
-## 27  Less than 25 students tested
-## 28  Less than 25 students tested
-## 29  Less than 25 students tested
-## 30  Less than 25 students tested
-## 31  Less than 25 students tested
-## 32  Less than 25 students tested
-## 33  Less than 25 students tested
-## 34  Less than 25 students tested
-## 35  Less than 25 students tested
-## 36  Less than 25 students tested
-## 37  Less than 25 students tested
-## 38  Less than 25 students tested
-## 39  Less than 25 students tested
-## 40  Less than 25 students tested
-## 41  Less than 25 students tested
-## 42  Less than 25 students tested
-## 43  Less than 25 students tested
-## 44  Less than 25 students tested
-## 45  Less than 25 students tested
-## 46  Less than 25 students tested
-## 47  Less than 25 students tested
-## 48  Less than 25 students tested
-## 49  Less than 25 students tested
-## 50  Less than 25 students tested
-## 51  Less than 25 students tested
-## 52  Less than 25 students tested
-## 53  Less than 25 students tested
-## 54  Less than 25 students tested
-## 55  Less than 25 students tested
-## 56  Less than 25 students tested
-## 57  Less than 25 students tested
-## 58  Less than 25 students tested
-## 59  Less than 25 students tested
-## 60  Less than 25 students tested
-## 61  Less than 25 students tested
-## 62  Less than 25 students tested
-## 63  Less than 25 students tested
-## 64  Less than 25 students tested
-## 65  Less than 25 students tested
-## 66  Less than 25 students tested
-## 67  Less than 25 students tested
-## 68  Less than 25 students tested
-## 69  Less than 25 students tested
-## 70  Less than 25 students tested
-## 71  Less than 25 students tested
-## 72  Less than 25 students tested
-## 73  Less than 25 students tested
-## 74  Less than 25 students tested
-## 75  Less than 25 students tested
-## 76  Less than 25 students tested
-## 77  Less than 25 students tested
-## 78  Less than 25 students tested
-## 79  Less than 25 students tested
-## 80  Less than 25 students tested
-## 81  Less than 25 students tested
-## 82  Less than 25 students tested
-## 83  Less than 25 students tested
-## 84  Less than 25 students tested
-## 85  Less than 25 students tested
-## 86  Less than 25 students tested
-## 87  Less than 25 students tested
-## 88  Less than 25 students tested
-## 89  Less than 25 students tested
-## 90  Less than 25 students tested
-## 91  Less than 25 students tested
-## 92  Less than 25 students tested
-## 93  Less than 25 students tested
-## 94  Less than 25 students tested
-## 95  Less than 25 students tested
-## 96  Less than 25 students tested
-## 97  Less than 25 students tested
-## 98  Less than 25 students tested
-## 99  Less than 25 students tested
-## 100 Less than 25 students tested
-## 101 Less than 25 students tested
-## 102 Less than 25 students tested
-## 103 Less than 25 students tested
-## 104 Less than 25 students tested
-## 105 Less than 25 students tested
-## 106 Less than 25 students tested
-## 107 Less than 25 students tested
-## 108 Less than 25 students tested
-## 109 Less than 25 students tested
-## 110 Less than 25 students tested
-## 111 Less than 25 students tested
-## 112 Less than 25 students tested
-## 113 Less than 25 students tested
-## 114 Less than 25 students tested
-## 115 Less than 25 students tested
-## 116 Less than 25 students tested
-## 117 Less than 25 students tested
-## 118 Less than 25 students tested
-## 119 Less than 25 students tested
-## 120 Less than 25 students tested
-## 121 Less than 25 students tested
-## 122 Less than 25 students tested
-## 123 Less than 25 students tested
-## 124 Less than 25 students tested
-## 125 Less than 25 students tested
-## 126 Less than 25 students tested
-## 127 Less than 25 students tested
-## 128 Less than 25 students tested
-## 129 Less than 25 students tested
-## 130 Less than 25 students tested
-## 131 Less than 25 students tested
-## 132 Less than 25 students tested
-## 133 Less than 25 students tested
-## 134 Less than 25 students tested
-## 135 Less than 25 students tested
-## 136 Less than 25 students tested
-## 137 Less than 25 students tested
-## 138 Less than 25 students tested
-## 139 Less than 25 students tested
-## 140 Less than 25 students tested
-## 141 Less than 25 students tested
-## 142 Less than 25 students tested
-## 143 Less than 25 students tested
-## 144 Less than 25 students tested
-## 145 Less than 25 students tested
-## 146 Less than 25 students tested
-## 147 Less than 25 students tested
-## 148 Less than 25 students tested
-## 149 Less than 25 students tested
-## 150 Less than 25 students tested
-## 151 Less than 25 students tested
-## 152 Less than 25 students tested
-## 153 Less than 25 students tested
-## 154 Less than 25 students tested
-## 155 Less than 25 students tested
-## 156 Less than 25 students tested
-## 157 Less than 25 students tested
-## 158 Less than 25 students tested
-## 159 Less than 25 students tested
-## 160 Less than 25 students tested
-## 161 Less than 25 students tested
-## 162 Less than 25 students tested
-## 163 Less than 25 students tested
-## 164 Less than 25 students tested
-## 165 Less than 25 students tested
-## 166 Less than 25 students tested
-## 167 Less than 25 students tested
-## 168 Less than 25 students tested
-## 169 Less than 25 students tested
-## 170 Less than 25 students tested
-## 171 Less than 25 students tested
-## 172 Less than 25 students tested
-## 173 Less than 25 students tested
-## 174 Less than 25 students tested
-## 175 Less than 25 students tested
-## 176 Less than 25 students tested
-## 177 Less than 25 students tested
-## 178 Less than 25 students tested
-## 179 Less than 25 students tested
-## 180 Less than 25 students tested
-## 181 Less than 25 students tested
-## 182 Less than 25 students tested
-## 183 Less than 25 students tested
-## 184 Less than 25 students tested
-## 185 Less than 25 students tested
-## 186 Less than 25 students tested
-## 187 Less than 25 students tested
-## 188 Less than 25 students tested
-## 189 Less than 25 students tested
-## 190 Less than 25 students tested
-## 191 Less than 25 students tested
-## 192 Less than 25 students tested
-## 193 Less than 25 students tested
-## 194 Less than 25 students tested
-## 195 Less than 25 students tested
-## 196 Less than 25 students tested
-## 197 Less than 25 students tested
-## 198 Less than 25 students tested
-## 199 Less than 25 students tested
-## 200 Less than 25 students tested
-## 201 Less than 25 students tested
-## 202 Less than 25 students tested
-## 203 Less than 25 students tested
-## 204 Less than 25 students tested
-## 205 Less than 25 students tested
-## 206 Less than 25 students tested
-## 207 Less than 25 students tested
-## 208 Less than 25 students tested
-## 209 Less than 25 students tested
-## 210 Less than 25 students tested
-## 211 Less than 25 students tested
-## 212 Less than 25 students tested
-## 213 Less than 25 students tested
-## 214 Less than 25 students tested
-## 215 Less than 25 students tested
-## 216 Less than 25 students tested
-## 217 Less than 25 students tested
-## 218 Less than 25 students tested
-## 219 Less than 25 students tested
-## 220 Less than 25 students tested
-## 221 Less than 25 students tested
-## 222 Less than 25 students tested
-## 223 Less than 25 students tested
-## 224 Less than 25 students tested
-## 225 Less than 25 students tested
-## 226 Less than 25 students tested
-## 227 Less than 25 students tested
-## 228 Less than 25 students tested
-## 229 Less than 25 students tested
-## 230 Less than 25 students tested
-## 231 Less than 25 students tested
-## 232 Less than 25 students tested
-## 233 Less than 25 students tested
-## 234 Less than 25 students tested
-## 235 Less than 25 students tested
-## 236 Less than 25 students tested
-## 237 Less than 25 students tested
-## 238 Less than 25 students tested
-## 239 Less than 25 students tested
-## 240 Less than 25 students tested
-## 241 Less than 25 students tested
-## 242 Less than 25 students tested
-## 243 Less than 25 students tested
-## 244 Less than 25 students tested
-## 245 Less than 25 students tested
-## 246 Less than 25 students tested
-## 247 Less than 25 students tested
-## 248 Less than 25 students tested
-## 249 Less than 25 students tested
-## 250 Less than 25 students tested
-## 251 Less than 25 students tested
-## 252 Less than 25 students tested
-## 253 Less than 25 students tested
-## 254 Less than 25 students tested
-## 255 Less than 25 students tested
-## 256 Less than 25 students tested
-## 257 Less than 25 students tested
-## 258 Less than 25 students tested
-## 259 Less than 25 students tested
-## 260 Less than 25 students tested
-## 261 Less than 25 students tested
-## 262 Less than 25 students tested
-## 263 Less than 25 students tested
-## 264 Less than 25 students tested
-## 265 Less than 25 students tested
-## 266 Less than 25 students tested
-## 267 Less than 25 students tested
-## 268 Less than 25 students tested
-## 269 Less than 25 students tested
-## 270 Less than 25 students tested
-## 271 Less than 25 students tested
-## 272 Less than 25 students tested
-## 273 Less than 25 students tested
-## 274 Less than 25 students tested
-## 275 Less than 25 students tested
-## 276 Less than 25 students tested
-## 277 Less than 25 students tested
-## 278 Less than 25 students tested
-## 279 Less than 25 students tested
-## 280 Less than 25 students tested
-## 281 Less than 25 students tested
-## 282 Less than 25 students tested
-## 283 Less than 25 students tested
-## 284 Less than 25 students tested
-## 285 Less than 25 students tested
-## 286 Less than 25 students tested
-## 287 Less than 25 students tested
-## 288 Less than 25 students tested
-## 289 Less than 25 students tested
-## 290 Less than 25 students tested
-## 291 Less than 25 students tested
-## 292 Less than 25 students tested
-## 293 Less than 25 students tested
-## 294 Less than 25 students tested
-## 295 Less than 25 students tested
-## 296 Less than 25 students tested
-## 297 Less than 25 students tested
-## 298 Less than 25 students tested
-## 299 Less than 25 students tested
-## 300 Less than 25 students tested
-## 301 Less than 25 students tested
-## 302 Less than 25 students tested
-## 303 Less than 25 students tested
-## 304 Less than 25 students tested
-## 305 Less than 25 students tested
-## 306 Less than 25 students tested
-## 307 Less than 25 students tested
-## 308 Less than 25 students tested
-## 309 Less than 25 students tested
-## 310 Less than 25 students tested
-## 311 Less than 25 students tested
-## 312 Less than 25 students tested
-## 313 Less than 25 students tested
-## 314 Less than 25 students tested
-## 315 Less than 25 students tested
-## 316 Less than 25 students tested
-## 317 Less than 25 students tested
-## 318 Less than 25 students tested
-## 319 Less than 25 students tested
-## 320 Less than 25 students tested
-## 321 Less than 25 students tested
-## 322 Less than 25 students tested
-## 323 Less than 25 students tested
-## 324 Less than 25 students tested
-## 325 Less than 25 students tested
-## 326 Less than 25 students tested
-## 327 Less than 25 students tested
-## 328 Less than 25 students tested
-## 329 Less than 25 students tested
-## 330 Less than 25 students tested
-## 331 Less than 25 students tested
-## 332 Less than 25 students tested
-## 333 Less than 25 students tested
-## 334 Less than 25 students tested
-## 335 Less than 25 students tested
-## 336 Less than 25 students tested
-## 337 Less than 25 students tested
-## 338 Less than 25 students tested
-## 339 Less than 25 students tested
-## 340 Less than 25 students tested
-## 341 Less than 25 students tested
-## 342 Less than 25 students tested
-## 343 Less than 25 students tested
-## 344 Less than 25 students tested
-## 345 Less than 25 students tested
-## 346 Less than 25 students tested
-## 347 Less than 25 students tested
-## 348 Less than 25 students tested
-## 349 Less than 25 students tested
-## 350 Less than 25 students tested
-## 351 Less than 25 students tested
-## 352 Less than 25 students tested
-## 353 Less than 25 students tested
-## 354 Less than 25 students tested
-## 355 Less than 25 students tested
-## 356 Less than 25 students tested
-## 357 Less than 25 students tested
-## 358 Less than 25 students tested
-## 359 Less than 25 students tested
-## 360 Less than 25 students tested
-## 361 Less than 25 students tested
-## 362 Less than 25 students tested
-## 363 Less than 25 students tested
-## 364 Less than 25 students tested
-## 365 Less than 25 students tested
-## 366 Less than 25 students tested
-## 367 Less than 25 students tested
-## 368 Less than 25 students tested
-## 369 Less than 25 students tested
-## 370 Less than 25 students tested
-## 371 Less than 25 students tested
-## 372 Less than 25 students tested
-## 373 Less than 25 students tested
-## 374 Less than 25 students tested
-## 375 Less than 25 students tested
-## 376 Less than 25 students tested
-## 377 Less than 25 students tested
-## 378 Less than 25 students tested
-## 379 Less than 25 students tested
-## 380 Less than 25 students tested
-## 381 Less than 25 students tested
-## 382 Less than 25 students tested
-## 383 Less than 25 students tested
-## 384 Less than 25 students tested
-## 385 Less than 25 students tested
-## 386 Less than 25 students tested
-## 387 Less than 25 students tested
-## 388 Less than 25 students tested
-## 389 Less than 25 students tested
-## 390 Less than 25 students tested
-## 391 Less than 25 students tested
-## 392 Less than 25 students tested
-## 393 Less than 25 students tested
-## 394 Less than 25 students tested
-## 395 Less than 25 students tested
-## 396 Less than 25 students tested
-## 397 Less than 25 students tested
-## 398 Less than 25 students tested
-## 399 Less than 25 students tested
-## 400 Less than 25 students tested
-## 401 Less than 25 students tested
-## 402 Less than 25 students tested
-## 403 Less than 25 students tested
-## 404 Less than 25 students tested</code></pre>
 <div id="math" class="section level1">
 <h1>Math</h1>
 <p>Metro, high-poverty schools beating odds in math in 17-18<br> How they did in prior 6 years<br> Some don’t have data for all 6 years</p>

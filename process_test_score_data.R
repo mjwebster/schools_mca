@@ -236,7 +236,7 @@ testscores <- testscores %>% mutate(categorynum= case_when(residual==NA_real_ ~0
 
 testscores <-  testscores %>% mutate(categoryname= case_when(categorynum==99~"Not enough students tested", categorynum==1~"Falling short", categorynum==2~"As expected", categorynum==3~"Better than expected", TRUE~"99"))
 
-testscores %>% filter(categorynum==99) %>% select(schoolid, PctPoverty, PctProf, predicted, residual, Notes)
+#testscores %>% filter(categorynum==99) %>% select(schoolid, PctPoverty, PctProf, predicted, residual, Notes)
 
 
 
@@ -257,8 +257,8 @@ write.csv(dataviz_export, "mca_dataviz.csv", row.names = FALSE)
 
 
 #Alan needs these numbers to draw the lines in scatterplots
-coef(math_model)
-coef(read_model)
+#coef(math_model)
+#coef(read_model)
 
 
 
