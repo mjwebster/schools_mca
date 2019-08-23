@@ -33,23 +33,26 @@ library(ggthemes)
 ```
 
 
-```{r, code=readLines("process_test_score_data.R"), echo=FALSE, warning=FALSE, message=FALSE}
+```{r}
+#import files that were created in the 'process_test_score_data' script
 
-
-#CAn't figure out why this page is displaying errors and output in the HTML file
+beatingodds_math <- read_csv('./data/beatingodds_math.csv')
+beatingodds_read <-  read_csv('./data/beatingodds_read.csv')
+math_over_time <-  read_csv('./data/math_over_time.csv')
+read_over_time <-  read_csv('./data/read_over_time.csv')
 ```
 
 
 
+
 #Math
-Metro, high-poverty schools beating odds in math in 17-18<br>
-How they did in prior 6 years<br>
-Some don't have data for all 6 years
+Metro, high-poverty schools beating odds in math this year<br>
+How they did in prior years (starting with 12-13)<br>
+Some don't have data for all years
 
 ```{r }
 
-
-math_over_time %>% tabyl(SCHOOLNAME_NEW.x, categoryname.y) %>% 
+math_over_time %>% tabyl(school_name, categoryname) %>% 
   adorn_totals("col") %>%
   #adorn_percentages("row") %>%
   #adorn_pct_formatting(rounding = "half up", digits = 0) %>%
@@ -61,14 +64,14 @@ math_over_time %>% tabyl(SCHOOLNAME_NEW.x, categoryname.y) %>%
 
 
 #Reading
-Metro, high-poverty schools beating odds in reading in 17-18<br>
-How they did in prior 6 years<br>
-Some don't have data for all 6 years
+Metro, high-poverty schools beating odds in reading this year<br>
+How they did in prior years (starting with 12-13)<br>
+Some don't have data for all years
 
 ```{r}
 
 
-read_over_time %>% tabyl(SCHOOLNAME_NEW.x, categoryname.y) %>% 
+read_over_time %>% tabyl(school_name, categoryname) %>% 
   adorn_totals("col") %>%
   #adorn_percentages("row") %>%
   #adorn_pct_formatting(rounding = "half up", digits = 0) %>%
