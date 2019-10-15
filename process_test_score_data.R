@@ -84,8 +84,11 @@ private_poverty_thisyear <- read_excel("W:/private_poverty_MDE/Star Tribune Medi
 private_poverty_thisyear <- left_join(private_poverty_thisyear, public_poverty %>% select(schoolid, total_enrollment), by=c("schoolid"="schoolid")) %>% rename(k12enr=total_enrollment)
 
 
+
+
 #put all private poverty data in one file
 private_poverty <- bind_rows(private_poverty_thisyear, private_poverty_olderyrs)
+
 
 
 #need to save the full file off to a csv for next year
@@ -106,7 +109,7 @@ con <- dbConnect(RMySQL::MySQL(), host = Sys.getenv("host"), dbname="Schools",us
 
 #Pull MCA data summarized by school
 #this will only be for all years since 2012-13
-#only schools with classification code between 10-40
+#only schools with classification code between 10-40 & 46 (distance learning)
 #mca_for_analysis table is created as part of the mca_import script in mySQL
 
 data1 <- dbSendQuery(con, "select * from mca_for_analysis")
@@ -177,9 +180,15 @@ dbClearResult((data6))
 
 
 
+#opt out data for all schools and all categories
+data7 <- dbSendQuery(con, "select * from mca_opt_outs")
+optouts <- fetch(data7, n=-1)
+optouts <-  optouts %>% clean_names()
+dbClearResult((data7))
+#disconnect connection
+dbDisconnect(con)
 
-
-
+optouts <-  optouts %>% mutate(total_kids = counttested+optout+other_incomplete)
 
 
 
@@ -204,6 +213,7 @@ rm(data2)
 rm(data5)
 rm(data6)
 rm(data8)
+rm(data7)
 
 
 # END HERE ----------------------------------------------------------------
@@ -231,12 +241,15 @@ write.csv(mca_schools_this_year, 'mca_schools_this_year.csv', row.names=FALSE)
 
 
 #join PRIVATE poverty to mca for this year
+private_poverty <-  private_poverty %>% mutate(schoolid= str_trim(schoolid), datayear=str_trim(datayear))
+mca <-  mca %>% mutate(schoolid=str_trim(schoolid), datayear=str_trim(data_year))
+
+
 
 mca <- left_join(mca, private_poverty %>% select(schoolid, datayear, pctpoverty, povertycategory), by=c("schoolid"="schoolid","data_year"="datayear"))
 
 #ARE THERE ANY SCHOOLS THAT DO NOT HAVE POVERTY DATA???
 #mca %>% filter(is.na(pctpoverty)) %>% select(schoolid, data_year, districtname, schoolname, cnt_tested)
-
 
 
 #make reading and math subsets for regression
@@ -281,7 +294,7 @@ math <-  math %>%  mutate(predicted=pred_math)
 #add residual
 math <-  math  %>% mutate(residual = pctprof-predicted)
 
-#summary(math_model)
+summary(math_model)
 
 
 
@@ -299,7 +312,7 @@ read <-  read %>%  mutate(predicted=pred_read)
 #add residual
 read <-  read  %>% mutate(residual = pctprof-predicted)
 
-#summary(read_model)
+summary(read_model)
 
 
 
@@ -360,7 +373,8 @@ testscores <- testscores%>% mutate(school_type= case_when(schoolclassification==
                                                          schoolclassification=='31'~'Junior High (7-8 or 7-9)',
                                                           schoolclassification=='33'~'Secondary (7-12)',
                                                           schoolclassification=='32'~'Senior High (9-12)',
-                                                         schoolclassification=='40'~'Elem/Sec Combo (K-12)'))
+                                                         schoolclassification=='40'~'Elem/Sec Combo (K-12)',
+                                                         schoolclassification=='46'~'Distance learning'))
 
 
 
@@ -372,7 +386,7 @@ testscores <- testscores%>% mutate(school_type= case_when(schoolclassification==
 #only keep schools that were in operation in the current year
 
 #bring in the fixed version of mca_schools_this_year
-mca_schools_this_year <- read_csv('mca_schools_this_year.csv')
+mca_schools_this_year <- read_csv('mca_schools_this_year_fixed.csv')
 
 testscores_public <-  left_join(mca_schools_this_year, testscores, by=c("schoolid"="schoolid")) %>% 
   select(-districtname.y, -schoolname.y) %>% 
@@ -407,7 +421,7 @@ testscores_public <- testscores_public %>% mutate(pct_pov_public = case_when(is.
 
 
 #export CSV for data visualization
-write.csv(testscores_public, "./output/mca_dataviz.csv", row.names = FALSE)
+#write.csv(testscores_public, "./output/mca_dataviz.csv", row.names = FALSE)
 
 
 #write.csv(testscores_public %>% filter(districtnumber=='0709'), "./output/duluth.csv", row.names=FALSE)
@@ -441,13 +455,13 @@ math_over_time <-  inner_join(beatingodds_math %>% select(schoolid, subject), te
 #historical read data for beating the odds schools
 read_over_time <-  inner_join(beatingodds_read %>% select(schoolid, subject), testscores, by=c("subject"="subject", "schoolid"="schoolid"))
 
-write.csv(beatingodds_math, './data/beatingodds_math.csv', row.names=FALSE)
+#write.csv(beatingodds_math, './data/beatingodds_math.csv', row.names=FALSE)
 
-write.csv(beatingodds_read, './data/beatingodds_read.csv', row.names=FALSE)
+#write.csv(beatingodds_read, './data/beatingodds_read.csv', row.names=FALSE)
 
-write.csv(math_over_time, './data/math_over_time.csv', row.names=FALSE)
+#write.csv(math_over_time, './data/math_over_time.csv', row.names=FALSE)
 
-write.csv(read_over_time, './data/read_over_time.csv', row.names=FALSE)
+#write.csv(read_over_time, './data/read_over_time.csv', row.names=FALSE)
 
 
 
