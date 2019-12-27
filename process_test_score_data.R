@@ -34,15 +34,31 @@ library(stringr)
 
 # START HERE --------------------------------------------------------------
 
+#VARIABLES THAT NEED TO BE CHANGED
 
-thisyear <- '18-19'
-lastyear <-  '17-18'
-firstyear <-  '12-13'
-race_groups_start_year <-  '13-14'
+thisyear <- '19-20'
+endingyr <-  '2020'
+previous_endingyr <-  '2019'
+lastyear <-  '18-19'
+firstyear <-  '12-13' #this shouldn't need to change
+race_groups_start_year <-  '13-14'  #this shouldn't need to change; this is when MDE changed race groupings
+
+#this is where to find the old private poverty data file (which gets generated as part of this script)
+poverty_olderyrs <- paste('W:/private_poverty_MDE/private_poverty_through', previous_endingyr, '.csv', sep='')
+
+#set this path for the new PUBLIC enrollment file
+public_enroll_file <-  './data/enrollment_public_file_2019_v2.xlsx'
+
+#set this path for the new PRIVATE poverty/enrollment file
+new_private_poverty_file <-  'W:/private_poverty_MDE/Star Tribune Media Request - Free and Reduced Price Meal Eligible Enrollment.xlsx'
+
+#IMPORT STARTS HERE------------------
+
+
 
 #import public version of poverty data for new year
 
-public_enrollment <- read_excel("./data/enrollment_public_file_2019_v2.xlsx", sheet="School", range="A2:AX13905") %>%
+public_enrollment <- read_excel(public_enroll_file, sheet="School", range="A2:AX13905") %>%
   clean_names() %>% mutate(schoolid=paste(district_number, district_type, school_number, sep="-"))
 
 enrollment <-  public_enrollment %>% select(data_year, schoolid, grade, total_enrollment)
@@ -61,17 +77,14 @@ public_poverty <-  public_enrollment %>% filter(grade=='All Grades')  %>%
 
 
 #in this file, the pctpoverty comes in as a fraction
-private_poverty_olderyrs <-  read_csv('W:/private_poverty_MDE/private_poverty.csv') %>% clean_names() %>% 
-  mutate(schoolid=paste(district_number, district_type, school_number, sep="-"),
-         povertycategory = case_when(pctpoverty>=.5 ~ 'High',
-                                     pctpoverty<.25 ~ 'Low',
-                                     pctpoverty<.5 & pctpoverty>=.25 ~ 'Medium'),
-         freelunch = freek12+redk12) %>% 
-  select(-freek12, -redk12)
+
+
+
+private_poverty_olderyrs <-  read_csv(poverty_olderyrs) 
 
 
 #this file the pctpoverty comes across as a whole number
-private_poverty_thisyear <- read_excel("W:/private_poverty_MDE/Star Tribune Media Request - Free and Reduced Price Meal Eligible Enrollment.xlsx", sheet="School", range="A1:P13904") %>%
+private_poverty_thisyear <- read_excel(new_private_poverty_file, sheet="School", range="A1:P13904") %>%
   clean_names() %>% filter(grade=='All Grades') %>% select(district_number, district_type, school_number, district_name,
                                                                  school_name, pctpoverty=unfiltered_total_students_eligible_for_free_or_reduced_priced_meals_percent,
                                                                  datayear=data_year, freelunch=unfiltered_total_students_eligible_for_free_or_reduced_priced_meals_count) %>% 
@@ -92,7 +105,7 @@ private_poverty <- bind_rows(private_poverty_thisyear, private_poverty_olderyrs)
 
 
 #need to save the full file off to a csv for next year
-
+write.csv(private_poverty, paste('W:/private_poverty_MDE/private_poverty_through', endingyr, '.csv', sep=''), row.names = FALSE)
 
 
 #uSE THIS Original import the first time
@@ -421,7 +434,7 @@ testscores_public <- testscores_public %>% mutate(pct_pov_public = case_when(is.
 
 
 #export CSV for data visualization
-#write.csv(testscores_public, "./output/mca_dataviz.csv", row.names = FALSE)
+write.csv(testscores_public, "./output/mca_dataviz_rerun_Nov2019.csv", row.names = FALSE)
 
 
 #write.csv(testscores_public %>% filter(districtnumber=='0709'), "./output/duluth.csv", row.names=FALSE)
