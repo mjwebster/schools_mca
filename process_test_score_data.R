@@ -52,6 +52,10 @@ public_enroll_file <-  './data/enrollment_public_file_2019_v2.xlsx'
 #set this path for the new PRIVATE poverty/enrollment file
 new_private_poverty_file <-  'W:/private_poverty_MDE/Star Tribune Media Request - Free and Reduced Price Meal Eligible Enrollment.xlsx'
 
+
+#checke the RANGES on the Excel imports below
+
+
 #IMPORT STARTS HERE------------------
 
 
@@ -74,11 +78,6 @@ public_poverty <-  public_enrollment %>% filter(grade=='All Grades')  %>%
 #these cannot be published
 #they must be stored on the NewsCARdata server that only I have access to
 #data must deleted within 6 months after agreement signed
-
-
-#in this file, the pctpoverty comes in as a fraction
-
-
 
 private_poverty_olderyrs <-  read_csv(poverty_olderyrs) 
 
