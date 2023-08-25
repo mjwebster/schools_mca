@@ -53,7 +53,7 @@ You can also use this to figure out which schools/districts need to be added to 
 
 ## R script
 
-The R script called "process_test_score_data" pulls the MCA data (and other data) from the mySQL server. It uses 
+The R script called "process_test_score_data" pulls the MCA data (and other data) from the mySQL server. 
 It spits out data that is summarized at the school level. 
 
 It joins the data to data on the number of kids on free/reduced price lunch (poverty), calculates the percentage proficient, and then runs regression analyses on the math results and reading results.
