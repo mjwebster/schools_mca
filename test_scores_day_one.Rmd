@@ -21,11 +21,11 @@ library(kableExtra)
 library(ggthemes)
 library(stringr)
 library(formattable)
-
+library(broom)
 
 # use R script to import new data from the Excel file the state produces
 # that spits out a csv file
-# import that to the mca2019_present table in mySQL server
+# import that csv file to the mca2019_present table in mySQL server
 
 
 
@@ -41,7 +41,12 @@ prevdtyr = '21-22'
 ```
 
 
-#import data from mySQL  (be sure to add the newest data first)
+
+
+
+
+
+#import data from mySQL  (be sure to add the new data first)
 ```{r}
 con <- dbConnect(RMySQL::MySQL(), host = Sys.getenv("host"), dbname="Schools",user= Sys.getenv("userid"), password=Sys.getenv("pwd"))
 
@@ -65,9 +70,20 @@ data_c <-  dbSendQuery(con, "select data_year, county_number, county_name, distr
                        from mca2019_present")
 
 
-mca_mtas <-  fetch(data_c, n= -1)
+mca_mtas_original <-  fetch(data_c, n= -1)
 
 dbClearResult(data_c)
+
+
+# POVERTY DATA; this assumes the most current year of poverty data is in the SQL table "enroll"
+data_d <- dbSendQuery(con, "select idnumber, data_year, total_students_eligible_for_free_or_reduced_priced_meals_count, total_students_eligible_for_free_or_reduced_priced_meals_percent, total_enrollment
+from enroll where upper(grade)='ALL GRADES' and endyr>=2018")
+
+poverty <- fetch(data_d, n= -1)
+
+dbClearResult(data_d)
+
+
 
 #disconnect connection
 dbDisconnect(con)
@@ -82,53 +98,69 @@ district_list <-  district_list %>% rename(idnumber=id_number, standard_district
 master_list <-  bind_rows(school_list %>% select(idnumber, district_type, standard_district_name=district_name, standard_school_name, metro7county, location, school_classification, school_type, grades, city), district_list %>% select(idnumber, district_type, standard_district_name, metro7county, location))
 
 
-#join school and district info to mca_mtas
-mca_mtas <-  left_join(mca_mtas, master_list %>% select(-district_type, -school_classification), by=c("idnumber"="idnumber"))
+
+
 
 
   
 ```
 
 
+```{r}
+
+#before running next code, check how many records are in mca_mtas_original; then run this code and make sure you get the same number of records
+
+#join school and district info to mca_mtas
+mca_mtas_original <-  left_join(mca_mtas_original, master_list %>% select(-district_type, -school_classification), by=c("idnumber"="idnumber"))
+
+
+```
+
+
+
+
+# clean up poverty data
+```{r}
+# remove percentage signs (they appear randomly in the file)
+poverty <- poverty %>%  mutate(pct_poverty = str_remove(total_students_eligible_for_free_or_reduced_priced_meals_percent, "%"))
+
+
+public_poverty   <- 
+  poverty %>% 
+  select(data_year, idnumber ,total_enrollment, poverty = total_students_eligible_for_free_or_reduced_priced_meals_count, pct_poverty) %>% 
+  mutate(poverty_calc = case_when(pct_poverty=='>=90' ~ .90,   #this creates a numeric field for use in the regression
+                                  pct_poverty=='0.00' ~ 0,
+    pct_poverty!='NA' ~ poverty/total_enrollment),
+   
+         povertylevel = case_when(pct_poverty=='>=90' ~ 'high',   #this creates a category for use in analysis
+                                  poverty_calc >=.6 ~ 'high',
+                                  poverty_calc<.6 & poverty_calc>.3 ~ 'medium',
+                                  poverty_calc<=.3  ~ 'low',
+                                  TRUE ~ 'unk'),
+    pct_pov_public = case_when(pct_poverty=='NA'~'Not public',  #this creates a text field for display online
+                               pct_poverty=='>=90' ~ '>=90%',
+                                
+                                TRUE~pct_poverty)) 
+
+
+
+
+```
 
 
 
 ```{r}
-
-#import public version of poverty data for new year
-
-public_enrollment <- read_excel(public_enroll_file, sheet="School", skip=1) %>%
-  clean_names() %>% filter(grade=='All Grades') %>% mutate(schoolid=paste(district_number, district_type, school_number, sep="-"))
-
-enrollment <-  public_enrollment %>% select(data_year, schoolid, grade, total_enrollment)
+#join poverty info to mca_mtas; this new table should have same number of records as the mca_mtas_original
+mca_mtas <-  left_join(mca_mtas_original, public_poverty, by=c("idnumber"="idnumber", "data_year"="data_year"))
 
 
-public_poverty <-  public_enrollment %>% filter(grade=='All Grades')  %>% 
-  select(schoolid ,total_enrollment, poverty = total_students_eligible_for_free_or_reduced_priced_meals_count, pct_poverty=total_students_eligible_for_free_or_reduced_priced_meals_percent,
-         pct_white = total_white_percent) %>% 
-  mutate(poverty_calc = case_when(pct_poverty!='NA' ~ poverty/total_enrollment),
-         povertylevel = case_when(pct_poverty=='>=90%' ~ 'high',
-                                  poverty_calc >=.6 ~ 'high',
-                                  poverty_calc<.6 & poverty_calc>.3 ~ 'medium',
-                                  poverty_calc<=.3  ~ 'low',
-                                  is.na(pct_poverty) & pct_white< 50 ~ 'likely high',  #these are schools with low share of white
-                                  is.na(pct_poverty) & pct_white>=50 ~ 'likely low',  #these are schools 50% or more white
-                                  TRUE ~ 'unk'))
-
-
-
-
-#join poverty info to mca_mtas
-mca_mtas <-  left_join(mca_mtas, public_poverty, by=c("idnumber"="schoolid"))
-
-
-#public_poverty %>% filter(is.na(poverty_calc)) %>% arrange(desc(total_enrollment))
-
-  mca_mtas$poverty_calc[mca_mtas$pct_poverty=='>=90%'] <- .90
 
 
 #clean leading/trailing spaces on key fields
-mca_mtas <-  mca_mtas %>% mutate(grade= str_trim(grade), subject=str_trim(subject), student_group=str_trim(student_group))
+mca_mtas <-  mca_mtas %>%
+  mutate(grade= str_trim(grade), 
+         subject=str_trim(subject), 
+         student_group=str_trim(student_group))
 
 
 
@@ -138,8 +170,8 @@ mca_mtas <-  mca_mtas %>% mutate(numproficient = count_level_m+count_level_e,
 
 
 #add uniqueID, adjust datayear and grades fields
-mca_mtas <- mca_mtas %>% mutate(uniqueID=paste(idnumber,'-',substr(data_year,1,2),' to ',substr(data_year,4,6),'-',subject), 
-                                    datayear_new=paste(substr(data_year,1,2),' to ',substr(data_year,4,6)), 
+mca_mtas <- mca_mtas %>% mutate(uniqueID=paste(idnumber,'-',substr(data_year,1,2),'to',substr(data_year,4,6),'-',subject), 
+                                    datayear_new=paste(substr(data_year,1,2),'to',substr(data_year,4,6)), 
                                     grades = str_trim(grades),
                                     grades_new= case_when(str_length(grades)==1 ~ grades, TRUE~str_replace(grades, '-', ' to ')))
 
@@ -153,12 +185,42 @@ mca_mtas <- mca_mtas%>% mutate(school_type= case_when(school_classification=='10
                                                          school_classification=='40'~'Elem/Sec Combo (K-12)',
                                                          school_classification=='46'~'Distance learning'))
 
-mca_mtas <- mca_mtas%>% mutate(pct_pov_public = case_when(is.na(pct_poverty)~'Not public',
-                                                            str_length(pct_poverty)==5~pct_poverty,
-                                                            str_length(pct_poverty)==6 ~ paste(str_sub(pct_poverty,1,4),'%', sep=''),
-                                                                                              TRUE~'unk')) 
 
 
+
+
+```
+
+
+# Schools where we don't have poverty rates for current year (in some cases, we do for earlier years)
+```{r}
+mca_mtas %>% filter(pct_pov_public=='Not public', level=='school', grade=='00', student_group=='All students', data_year=='22-23', filter_all=='N', total_tested>=25)
+```
+
+
+# Rochester didn't give tests in 2023 due to technical problems
+```{r}
+mca_mtas %>% filter(district_number=='0535', level=='school', grade=='00', student_group=='All students', filter_all=='N') 
+```
+
+
+```{r}
+
+# this pulls out Rochester data in order to add it back in as part of the regression analysis
+# Rochester didn't test in 2023
+#won't need this in future years
+#there are a few other spots where rochester is added in that needs to be edited in future years
+
+rochester <- mca_mtas %>% filter(district_number=='0535',level=='school', filter_all=='N', student_group=='All students', grade=='00')%>% mutate(notes='Tests not given in 2023 due to technical problems')
+```
+
+
+
+
+```{r}
+
+
+#this section is just for the lookup tool that goes with the first day story (not the regression analysis)
 
 
 
@@ -170,7 +232,9 @@ mca_mtas_current_yr <-  mca_mtas %>%   filter(data_year==dtyr) %>% group_by(idnu
 mca_mtas_public <- inner_join(mca_mtas, mca_mtas_current_yr %>% select(idnumber), by=c("idnumber"="idnumber"))
 
 
-
+#check to see that we have the right number of schools in the mca_mtas_public table
+#this query should yield the same number of records as in the mca_mtas_current_yr table
+mca_mtas_public %>% group_by(idnumber) %>% summarise(count=n())
 
 
 
@@ -187,7 +251,7 @@ mca_online <-  mca_mtas_public %>%
   mutate(notes = case_when(filter_all=='Y' ~ 'Data suppressed; less than 10 students tested',
                            TRUE ~ ''))
   
-write.csv(mca_online, './output/mca_online.csv', row.names=FALSE)
+#write.csv(mca_online, './output/mca_online.csv', row.names=FALSE)
 
 
 #check the file output to make sure it looks ok
@@ -243,12 +307,13 @@ write.csv(state_level_all_years, './output/state_level_all_years.csv', row.names
 # regression analysis
 
 ```{r}
-#math results, all students, all grades collapsed, school level where 25 or more enrollment, not filtered
+#math results, all students, all grades collapsed, school level, 25 or more students tested, not filtered, and where we have poverty calculation
 
-math <- mca_mtas %>% filter(subject=='MATH', grade=='00', level=='school', student_group=='All students', filter_all=='N', total_tested>=25, poverty_calc!='NA') %>% mutate(pct_proficient = (count_level_m+count_level_e)/total_tested) 
+math <- mca_mtas %>% filter(subject=='MATH', grade=='00', level=='school', student_group=='All students', filter_all=='N', total_tested>=25, poverty_calc!='NA') 
 
 
-read <- mca_mtas %>% filter(subject=='Reading', grade=='00', level=='school', student_group=='All students', filter_all=='N', total_tested>=25, poverty_calc!='NA')%>% mutate(pct_proficient = (count_level_m+count_level_e)/total_tested)
+#reading results with same filters
+read <- mca_mtas %>% filter(subject=='Reading', grade=='00', level=='school', student_group=='All students', filter_all=='N', total_tested>=25, poverty_calc!='NA')
 
 
 #export files for regression analysis
@@ -256,16 +321,17 @@ read <- mca_mtas %>% filter(subject=='Reading', grade=='00', level=='school', st
 #write.csv(read, './data/read_regression.csv', row.names = FALSE)
 
 
-#create two files of the schools excluded from the analysis
+#create two files of the schools excluded from the analysis because total_tested<25 or no poverty calculation
 #these need to be added back to the final data file
-math_excluded <-  mca_mtas %>% filter(subject=='MATH', grade=='00', level=='school', student_group=='All students', filter_all=='N',total_tested<25 | is.na(poverty_calc))%>%
-  mutate(numproficient=count_level_m+count_level_e, pct_proficient= (count_level_m+count_level_e)/total_tested, 
-         notes='Less than 25 students tested', predicted=NA_real_,  residual=NA_real_)
 
 
-read_excluded <- mca_mtas %>% filter(subject=='Reading', grade=='00', level=='school', student_group=='All students', filter_all=='N',total_tested<25 | is.na(poverty_calc)) %>%
-  mutate(numproficient=count_level_m+count_level_e, pct_proficient= (count_level_m+count_level_e)/total_tested, 
-         notes='Less than 25 students tested', predicted=NA_real_,  residual=NA_real_)
+#excluded due to less than 25 tested
+excluded1 <-  mca_mtas %>% filter( grade=='00', level=='school', student_group=='All students', filter_all=='N',total_tested<25 )%>%
+  mutate(notes='Less than 25 students tested', predicted=NA_real_,  residual=NA_real_)
+
+
+excluded2 <- mca_mtas %>% filter(grade=='00', level=='school', student_group=='All students', filter_all=='N', is.na(poverty_calc)) %>%
+  mutate(notes='Poverty data not available', predicted=NA_real_,  residual=NA_real_)
 
 
 #schools that didn't have test result data due to suppression
@@ -274,12 +340,15 @@ missing <- mca_mtas %>% filter(level=='school', filter_all=='Y', student_group==
 
 
 
-#test to make sure all the schools are here; the second query should result in zero
 
-combined <-  bind_rows(math, read, math_excluded, read_excluded, missing)
+#combine all the files  (remove Rochester in future years)
+combined <-  bind_rows(math, read, excluded1, excluded2, missing, rochester)
+
+
+
+#test to make sure all the schools are here; this query should result in zero
 
 anti_join(mca_mtas %>% filter(level=='school', grade=='00', student_group=='All students'), combined, by=c("idnumber"="idnumber", "data_year"="data_year", "subject"="subject"))
-
 
 
 
@@ -328,6 +397,51 @@ read <-  read  %>% mutate(residual = pct_proficient-predicted)
 
 ```
 
+```{r}
+augment(math_model, data = math) %>% 
+  arrange(.fitted)
+
+
+#this calculates the fit line needed for scatterplots
+#math fit line
+fit <-  augment(math_model, data = math) %>% group_by(.fitted) %>% summarise(count=n())
+
+write.csv(fit, 'math_fit_line.csv', row.names = FALSE)
+
+
+
+#reading fit line
+fit_read <-  augment(read_model, data = read) %>% group_by(.fitted) %>% summarise(count=n())
+
+write.csv(fit_read, 'read_fit_line.csv', row.names = FALSE)
+```
+
+
+```{r}
+
+
+augment(math_model, data=math) %>% 
+  ggplot() +
+  geom_point(aes(x = poverty_calc, y = pct_proficient), size = .8) + 
+  geom_line(aes(x = poverty_calc, y = .fitted), color = "blue") + #the fitted line
+  #geom_point(data=math2223 %>% filter(idnumber=='0837-01-020'), aes(x = poverty_calc, y = pct_proficient), size = 2, color="red")
+  labs(x = "Pct Poverty", y = "Proficiency") +
+  theme_minimal()
+```
+
+
+
+
+
+```{r}
+augment(read_model, data=read) %>% 
+  ggplot() +
+  geom_point(aes(x = poverty_calc, y = pct_proficient), size = .8) + 
+  geom_line(aes(x = poverty_calc, y = .fitted), color = "blue") + #the fitted line
+  geom_point(data=read %>% filter(idnumber=='0837-01-020'), aes(x = poverty_calc, y = pct_proficient), size = 2, color="red")
+  labs(x = "Pct Poverty", y = "Proficiency") +
+  theme_minimal()
+```
 
 
 ```{r}
@@ -339,7 +453,12 @@ math <- math %>% mutate(categorynum= case_when(residual==NA_real_ ~0,
                                                            residual>  0.09509 ~3, 
                                                            TRUE ~99))
 
-math <-  math %>% mutate(categoryname= case_when(categorynum==99~"Not enough students tested", categorynum==1~"Falling short", categorynum==2~"As expected", categorynum==3~"Better than expected", TRUE~"99"))
+math <-  math %>% 
+  mutate(categoryname= case_when(categorynum==99~"Not enough students tested", 
+                                 categorynum==1~"Falling short", 
+                                 categorynum==2~"As expected",
+                                 categorynum==3~"Better than expected", 
+                                 TRUE~"99"))
 
 
 
@@ -349,7 +468,12 @@ read <- read %>% mutate(categorynum= case_when(residual==NA_real_ ~0,
                                                            residual>  0.09509 ~3, 
                                                            TRUE ~99))
 
-read <-  read %>% mutate(categoryname= case_when(categorynum==99~"Not enough students tested", categorynum==1~"Falling short", categorynum==2~"As expected", categorynum==3~"Better than expected", TRUE~"99"))
+read <-  read %>% 
+  mutate(categoryname= case_when(categorynum==99~"Not enough students tested", 
+                                 categorynum==1~"Falling short", 
+                                 categorynum==2~"As expected",
+                                 categorynum==3~"Better than expected", 
+                                 TRUE~"99"))
 
 
 
@@ -359,10 +483,9 @@ read <-  read %>% mutate(categoryname= case_when(categorynum==99~"Not enough stu
 
 
 
-#union math, read, math_excluded, read_excluded -- call new table testscores\
-#exclude alternative learning centers; classification codes 41, 42 and 43
-testscores <- bind_rows(read, math, read_excluded, math_excluded, missing) %>% filter(school_classification!='41', school_classification!='42', school_classification!='43')
+#union math, read, math_excluded, read_excluded -- call new table testscores\ (remove Rochester in future years)
 
+testscores <- bind_rows(read, math, excluded1, excluded2, missing, rochester) 
 
 
 
@@ -373,24 +496,34 @@ testscores <- bind_rows(read, math, read_excluded, math_excluded, missing) %>% f
 testscores_public <- testscores %>% 
   select(uniqueID, schoolid=idnumber, districtnumber=district_number, districttype=district_type, school_number, districtname=standard_district_name, schoolname=standard_school_name, schoolclassification=school_classification, school_type,
          grades_new, metro7_strib=metro7county, location_strib=location, datayear_new, subject, cnt_tested=total_tested, cntlev1=count_level_d, cntlev2=count_level_p, cntlev3=count_level_m,
-         cntlev4=count_level_e, numproficient, pctprof=pct_proficient, total_enrollment, pct_pov_private=poverty_calc, pct_pov_public, predicted, residual, notes, categorynum, 
+         cntlev4=count_level_e, numproficient, pctprof=pct_proficient, total_enrollment, 
+         pct_pov_private=poverty_calc, 
+         pct_pov_public, 
+         predicted, residual, notes, categorynum, 
          categoryname, povertycategory=povertylevel)
+
+#set these aside to add back in later; DON'T NEED THIS IN FUTURE YEARS; Rochester didn't test in 2023 due to technical problems
+rochester2 <-  testscores_public %>% filter(districtnumber=='0535')
 
 
 
 #NEED TO WINNOW DOWN TO JUST SCHOOLS THAT EXISTED IN CURRENT YEAR
-
+#also filter to elementary schools, secondary schools and online schools
 
 testscores_current_yr <-  testscores %>%   filter(data_year==dtyr) %>% group_by(idnumber) %>% summarize(count=n())
 
-testscores_public <- inner_join(testscores_public, testscores_current_yr %>% select(idnumber), by=c("schoolid"="idnumber"))
+testscores_public <- inner_join(testscores_public, testscores_current_yr %>% select(idnumber), by=c("schoolid"="idnumber")) 
+
+
+#need to add Rochester back in because they didn't test students in 2023 (exclude this in future years; but keep the school classification part)
+testscores_public <-  bind_rows(testscores_public, rochester2)%>% 
+  filter(schoolclassification %in% c( '10', '20', '32', '33', '46', '31', '40'))
 
 
 
 
 #export CSV for data visualization
 write.csv(testscores_public, "./output/beating_odds_output.csv", row.names = FALSE)
-
 
 
 
