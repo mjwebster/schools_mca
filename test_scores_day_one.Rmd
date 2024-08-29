@@ -30,27 +30,21 @@ library(broom)
 
 
 #set this path for the new PUBLIC enrollment file
-public_enroll_file <-  './data/enrollment_public_file_2023.xlsx'
+public_enroll_file <-  './data/enrollment_public_file_2024.xlsx'
 
 
 #set this to the most current year of data
-dtyr='22-23'
+dtyr='23-24'
 
 #set this to the previous year of data
-prevdtyr = '21-22'
+prevdtyr = '22-23'
 ```
-
-
-
-
-
-
 
 #import data from mySQL  (be sure to add the new data first)
 ```{r}
 con <- dbConnect(RMySQL::MySQL(), host = Sys.getenv("host"), dbname="Schools",user= Sys.getenv("userid"), password=Sys.getenv("pwd"))
 
-data_a <- dbSendQuery(con, "select * from DistrictList")
+data_a <- dbSendQuery(con, "select * from districtlist")
 district_list<- fetch(data_a, n=-1)
 district_list <-  district_list %>% clean_names()
 dbClearResult((data_a))
@@ -91,17 +85,11 @@ dbDisconnect(con)
 
 school_list <-  school_list %>% rename(idnumber=schoolid, metro7county=metro7_strib, location = location_strib, standard_school_name=school_name)
 
-district_list <-  district_list %>% rename(idnumber=id_number, standard_district_name=organization)
+district_list <-  district_list %>% rename(idnumber=idnumber, standard_district_name=district_name)
 
 
 #create a single file with both schools and districts to join to the mca_mtas data
-master_list <-  bind_rows(school_list %>% select(idnumber, district_type, standard_district_name=district_name, standard_school_name, metro7county, location, school_classification, school_type, grades, city), district_list %>% select(idnumber, district_type, standard_district_name, metro7county, location))
-
-
-
-
-
-
+master_list <-  bind_rows(school_list %>% select(idnumber, district_type, standard_district_name=district_name, standard_school_name, metro7county, location, school_classification, school_type, grades, city), district_list %>% select(idnumber, district_type, standard_district_name, metro7county_strib, location_strib))
   
 ```
 
@@ -197,22 +185,6 @@ mca_mtas <- mca_mtas%>% mutate(school_type= case_when(school_classification=='10
 mca_mtas %>% filter(pct_pov_public=='Not public', level=='school', grade=='00', student_group=='All students', data_year=='22-23', filter_all=='N', total_tested>=25)
 ```
 
-
-# Rochester didn't give tests in 2023 due to technical problems
-```{r}
-mca_mtas %>% filter(district_number=='0535', level=='school', grade=='00', student_group=='All students', filter_all=='N') 
-```
-
-
-```{r}
-
-# this pulls out Rochester data in order to add it back in as part of the regression analysis
-# Rochester didn't test in 2023
-#won't need this in future years
-#there are a few other spots where rochester is added in that needs to be edited in future years
-
-rochester <- mca_mtas %>% filter(district_number=='0535',level=='school', filter_all=='N', student_group=='All students', grade=='00')%>% mutate(notes='Tests not given in 2023 due to technical problems')
-```
 
 
 
@@ -342,7 +314,7 @@ missing <- mca_mtas %>% filter(level=='school', filter_all=='Y', student_group==
 
 
 #combine all the files  (remove Rochester in future years)
-combined <-  bind_rows(math, read, excluded1, excluded2, missing, rochester)
+combined <-  bind_rows(math, read, excluded1, excluded2, missing)
 
 
 
@@ -485,7 +457,7 @@ read <-  read %>%
 
 #union math, read, math_excluded, read_excluded -- call new table testscores\ (remove Rochester in future years)
 
-testscores <- bind_rows(read, math, excluded1, excluded2, missing, rochester) 
+testscores <- bind_rows(read, math, excluded1, excluded2, missing) 
 
 
 
@@ -501,9 +473,6 @@ testscores_public <- testscores %>%
          pct_pov_public, 
          predicted, residual, notes, categorynum, 
          categoryname, povertycategory=povertylevel)
-
-#set these aside to add back in later; DON'T NEED THIS IN FUTURE YEARS; Rochester didn't test in 2023 due to technical problems
-rochester2 <-  testscores_public %>% filter(districtnumber=='0535')
 
 
 
@@ -583,6 +552,19 @@ mutate(pctprof = percent((count_level_m+count_level_e)/total_tested)) %>%
 
 
 ```
+
+```{r}
+testscores_public <- inner_join(testscores_public, testscores_current_yr %>% select(idnumber), by=c("schoolid"="idnumber")) %>%   filter(schoolclassification %in% c( '10', '20', '32', '33', '46', '31', '40'))
+
+mca_mtas %>% group_by(group_category) %>% summarise(count=n())
+
+mca_mtas %>% group_by(level) %>% summarise(count=n())
+
+mca_mtas %>% group_by(subject) %>% summarise(count=n())
+
+mca_mtas %>% group_by(grade) %>% summarise(count=n())
+```
+
 
 # proficiency by grade - reading
 ```{r}
@@ -726,24 +708,8 @@ mutate(pctprof = percent((levm+leve)/tot)) %>%
 
 # find the 10 largest metro districts
 ```{r}
-mca_mtas %>% filter(data_year=='22-23', subject=='MATH', level=='district', metro7county=='yes', grade=='00', student_group=='All students', district_type %in% c("01", "03")) %>% 
+mca_mtas %>% filter(data_year=='23-24', subject=='MATH', level=='district', metro7county=='yes', grade=='00', student_group=='All students', district_type %in% c("01", "03")) %>% 
   select(idnumber, standard_district_name, numproficient, total_tested, pct_proficient, total_students) %>%
   arrange(desc(total_students))
-```
-
-
-#export data for previous two years for those 10 districts, both math and reading -- for a print table
-```{r}
-top10metro <-  
-mca_mtas %>% 
-
-filter(idnumber %in% c("0011-01-000","0196-01-000", "0625-01-000", "0001-03-000", "0279-01-000", "0833-01-000", "0284-01-000", "0276-01-000", 
-                       "0194-01-000", "0621-01-000"),
-       data_year %in% c("18-19"),
-       level=='district', grade=='00', student_group=='All students') %>% 
-  select(idnumber, data_year, subject, standard_district_name, numproficient, pct_proficient, total_tested) %>% 
-  arrange(idnumber, subject, data_year)
-
-write.csv(top10metro, './output/top10metro_print_table_18_19.csv', row.names=FALSE)
 ```
 
